@@ -263,9 +263,13 @@ export default function Home() {
               gap: 5,
             }}
           >
-            {data.burned} wizards burned | {1112 - data.burned} flames remain |{" "}
+            {/* {data.burned} wizards burned | {1112 - data.burned} flames remain |{" "} */}
             <Link href="/burn-board">
               <span style={{ cursor: "pointer" }}>Burn Board</span>
+            </Link>
+            |{" "}
+            <Link href="/trait-burns">
+              <span style={{ cursor: "pointer" }}>Trait Burns</span>
             </Link>
             |{" "}
             <Link href="/flame-shame">
