@@ -5,8 +5,8 @@ A Next.js application for tracking and displaying burn statistics for Forgotten 
 ## Features
 
 - **Burn Log**: View all burned wizards with filtering by traits (head, body, prop, familiar, rune, background)
-- **Burn Board**: Leaderboard showing top burners of flames and treat boxes
-- **Flame Shame**: Display owners who hold both wizards and flames
+- [Broken] **Burn Board**: Leaderboard showing top burners of flames and treat boxes
+- [Broken] **Flame Shame**: Display owners who hold both wizards and flames
 
 ## Tech Stack
 
