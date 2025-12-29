@@ -11,9 +11,7 @@ export function useBurnStats() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(
-          process.env.NEXT_PUBLIC_BURN_STATS_API || "/api/burn-stats"
-        );
+        const response = await fetch("/api/burn-stats");
         
         if (!response.ok) {
           throw new Error(`Failed to fetch burn stats: ${response.statusText}`);
