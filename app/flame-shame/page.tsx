@@ -5,6 +5,7 @@ import styles from "../../styles/Home.module.css";
 import OwnerRow from "../../components/OwnerRow";
 import SiteHead from "../../components/SiteHead";
 import { useShameData } from "../../hooks/useShameData";
+import { ShameData } from "@/types";
 
 interface MainViewProps {
   data: ShameData;

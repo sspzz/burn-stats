@@ -6,6 +6,7 @@ import LeaderboardRow from "../../components/LeaderboardRow";
 import SiteHead from "../../components/SiteHead";
 import { useInView } from "react-intersection-observer";
 import { useLeaderboardData } from "../../hooks/useLeaderboardData";
+import { LeaderboardData } from "@/types";
 
 interface MainViewProps {
   data: LeaderboardData;

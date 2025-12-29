@@ -26,7 +26,7 @@ export interface Selection {
   background: TraitOption[];
 }
 
-export interface BurnData extends StatsData {
+export interface BurnData extends Omit<StatsData, 'souls'> {
   order: string[];
   souls: {
     [tokenId: string]: {
