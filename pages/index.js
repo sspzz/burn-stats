@@ -173,7 +173,7 @@ export default function Home() {
   useEffect(async () => {
     try {
       const asyncResponse = await fetch(
-        "https://aqueous-eyrie-64590.herokuapp.com/api/get"
+        process.env.NEXT_PUBLIC_BURN_STATS_API
       );
       const json = await asyncResponse.json();
       setData(json);
