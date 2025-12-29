@@ -47,11 +47,8 @@ ALCHEMY_API_KEY=your_alchemy_api_key
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_KEY=your_supabase_key
 
-# Reservoir API (for burn data)
+# Reservoir API (Deprecated, Reservoir no longer works)
 NEXT_PUBLIC_RESERVOIR_API_KEY=your_reservoir_api_key
-
-# Optional: External burn stats API
-NEXT_PUBLIC_BURN_STATS_API=your_burn_stats_api_url
 ```
 
 ### Development
