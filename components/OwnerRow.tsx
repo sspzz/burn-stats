@@ -1,15 +1,20 @@
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { useEnsName } from "wagmi";
 import { useInView } from "react-intersection-observer";
+import { OwnerData } from "@/types";
 
-function truncateAddress(address, shrinkInidicator) {
-  return address.slice(0, 4) + (shrinkInidicator || "…") + address.slice(-4);
+function truncateAddress(address: string, shrinkIndicator?: string): string {
+  return address.slice(0, 4) + (shrinkIndicator || "…") + address.slice(-4);
 }
 
-const OwnerRow = function ({ tokens }) {
+interface OwnerRowProps {
+  tokens: OwnerData;
+}
+
+const OwnerRow = function ({ tokens }: OwnerRowProps) {
   const { ref, inView } = useInView();
   const { data: ensName } = useEnsName({
-    address: tokens.owner,
+    address: tokens.owner as `0x${string}`,
     cacheTime: 60 * 60000,
     enabled: inView,
   });
@@ -32,7 +37,7 @@ const OwnerRow = function ({ tokens }) {
           rel="noreferrer"
         >
           {ensName ? ensName : truncateAddress(tokens.owner)} |{" "}
-          {tokens.flameCount} {tokens.flameCount == 1 ? "flame" : "flames"}
+          {tokens.flameCount} {tokens.flameCount === 1 ? "flame" : "flames"}
         </a>
       </h2>
       <div
@@ -95,3 +100,4 @@ const OwnerRow = function ({ tokens }) {
 };
 
 export default OwnerRow;
+

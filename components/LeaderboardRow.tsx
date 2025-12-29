@@ -3,24 +3,30 @@ import { useEnsName } from "wagmi";
 import useTimeSince from "../hooks/useTimeSince";
 import dayjs from "dayjs";
 import { useInView } from "react-intersection-observer";
+import { LeaderboardRow as LeaderboardRowType } from "@/types";
 
-function truncateAddress(address, shrinkInidicator) {
-  return address.slice(0, 4) + (shrinkInidicator || "…") + address.slice(-4);
+function truncateAddress(address: string, shrinkIndicator?: string): string {
+  return address.slice(0, 4) + (shrinkIndicator || "…") + address.slice(-4);
 }
 
 const short = dayjs().subtract(1, "month").unix();
 const medium = dayjs().subtract(3, "month").unix();
 const long = dayjs().subtract(6, "month").unix();
 
-const LeaderboardRow = function ({ data, rank }) {
+interface LeaderboardRowProps {
+  data: LeaderboardRowType;
+  rank: number;
+}
+
+const LeaderboardRow = function ({ data, rank }: LeaderboardRowProps) {
   const { ref, inView } = useInView();
   const { data: ensName } = useEnsName({
-    address: data.address,
+    address: data.address as `0x${string}`,
     cacheTime: 60 * 60000,
     enabled: inView,
   });
   const timeSinceLastBurn = useTimeSince(data.latestBurn.timestamp);
-  const cellStyle = {
+  const cellStyle: React.CSSProperties = {
     display: "table-cell",
     paddingLeft: 5,
   };
@@ -68,3 +74,4 @@ const LeaderboardRow = function ({ data, rank }) {
 };
 
 export default LeaderboardRow;
+

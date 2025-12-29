@@ -1,76 +1,90 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import styles from "../styles/Home.module.css";
-import "react-accessible-accordion/dist/fancy-example.css";
 import Select from "react-dropdown-select";
 import styled from "@emotion/styled";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import SiteHead from "../components/SiteHead";
-const wizzies = require("../data/wizzies.json");
-const traitList = ["head", "body", "prop", "familiar", "rune", "background"];
+import { Wizard, TraitOption, Selection } from "@/types";
+import { TraitStat } from "@/lib/types";
+import { useBurnStats } from "../hooks/useBurnStats";
+// @ts-ignore - JSON import
+import wizziesData from "../data/wizzies.json";
 
-const StyledSelect = styled(Select)`
-  background: #333;
-  border: #333 !important;
-  color: #fff;
-  width: 10vw;
+const wizzies = wizziesData as Wizard;
+const traitList = ["head", "body", "prop", "familiar", "rune", "background"] as const;
 
-  @media only screen and (max-width: 600px) {
-    width: 30vw;
-  }
-
-  .react-dropdown-select-clear,
-  .react-dropdown-select-dropdown-handle {
-    color: #fff;
-  }
-  .react-dropdown-select-option {
-    border: 1px solid #fff;
-  }
-  .react-dropdown-select-item {
-    color: #333;
-  }
-  .react-dropdown-select-input {
-    color: #fff;
-    font-family: Alagard;
-    width: 6em;
-  }
-  .react-dropdown-select-dropdown {
-    position: absolute;
-    left: 0;
-    border: none;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    border-radius: 2px;
-    overflow: auto;
-    z-index: 9;
+// Styled component wrapper for react-dropdown-select
+const StyledSelectWrapper = styled('div')`
+  .react-dropdown-select {
     background: #333;
-    box-shadow: none;
-    color: #fff !important;
-    width: 30vw;
-  }
-  .react-dropdown-select-item {
-    color: #f2f2f2;
-    border-bottom: 1px solid #333;
+    border: #333 !important;
+    color: #fff;
+    width: 10vw;
 
-    :hover {
-      color: #ffffff80;
+    @media only screen and (max-width: 600px) {
+      width: 30vw;
+    }
+
+    .react-dropdown-select-clear,
+    .react-dropdown-select-dropdown-handle {
+      color: #fff;
+    }
+    .react-dropdown-select-option {
+      border: 1px solid #fff;
+    }
+    .react-dropdown-select-item {
+      color: #333;
+    }
+    .react-dropdown-select-input {
+      color: #fff;
+      font-family: Alagard;
+      width: 6em;
+    }
+    .react-dropdown-select-dropdown {
+      position: absolute;
+      left: 0;
+      border: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      border-radius: 2px;
+      overflow: auto;
+      z-index: 9;
+      background: #333;
+      box-shadow: none;
+      color: #fff !important;
+      width: 30vw;
+    }
+    .react-dropdown-select-item {
+      color: #f2f2f2;
+      border-bottom: 1px solid #333;
+
+      :hover {
+        color: #ffffff80;
+      }
+    }
+    .react-dropdown-select-item.react-dropdown-select-item-selected,
+    .react-dropdown-select-item.react-dropdown-select-item-active {
+      border-bottom: 1px solid #333;
+      color: #fff;
+      font-weight: bold;
+    }
+    .react-dropdown-select-item.react-dropdown-select-item-disabled {
+      background: #777;
+      color: #ccc;
     }
   }
-  .react-dropdown-select-item.react-dropdown-select-item-selected,
-  .react-dropdown-select-item.react-dropdown-select-item-active {
-    //background: #111;
-    border-bottom: 1px solid #333;
-    color: #fff;
-    font-weight: bold;
-  }
-  .react-dropdown-select-item.react-dropdown-select-item-disabled {
-    background: #777;
-    color: #ccc;
-  }
-`;
+` as unknown as React.ComponentType<React.HTMLAttributes<HTMLDivElement>>;
 
-function MainView({ order, souls }) {
+interface MainViewProps {
+  order: string[];
+  souls: { [tokenId: string]: { name: string } };
+}
+
+function MainView({ order, souls }: MainViewProps) {
   console.log("creating");
   return (
     <div
@@ -119,7 +133,7 @@ function MainView({ order, souls }) {
                 />
               </a>
               <h3 style={{ fontSize: "1.2vh", maxWidth: "20vh" }}>
-                {wizzies[token].name}
+                {wizzies[token]?.name || ""}
               </h3>
             </div>
             <img
@@ -130,6 +144,7 @@ function MainView({ order, souls }) {
                 margin: "1vh",
                 maxWidth: "21vw",
               }}
+              alt="arrow"
             />
             <div>
               <a
@@ -148,7 +163,7 @@ function MainView({ order, souls }) {
                 />
               </a>
               <h3 style={{ fontSize: "1.2vh", maxWidth: "20vh" }}>
-                {souls[token].name}
+                {souls[token]?.name || ""}
               </h3>
             </div>
           </div>
@@ -159,9 +174,9 @@ function MainView({ order, souls }) {
 }
 
 export default function Home() {
-  const [data, setData] = useState("");
-  const [filteredData, setFilteredData] = useState("");
-  const [selection, setSelection] = useState({
+  const { data, loading: dataLoading } = useBurnStats();
+  const [filteredData, setFilteredData] = useState<{ order: string[] } | null>(null);
+  const [selection, setSelection] = useState<Selection>({
     head: [],
     body: [],
     prop: [],
@@ -170,28 +185,23 @@ export default function Home() {
     background: [],
   });
 
-  useEffect(async () => {
-    try {
-      const asyncResponse = await fetch(
-        process.env.NEXT_PUBLIC_BURN_STATS_API
-      );
-      const json = await asyncResponse.json();
-      setData(json);
-      setFilteredData(json);
-    } catch (err) {
-      console.error(err);
+  // Initialize filteredData when data loads
+  React.useEffect(() => {
+    if (data) {
+      setFilteredData(data);
     }
-  }, []);
+  }, [data]);
 
-  function updateFilter(e, type) {
-    var currentSelection = { ...selection };
-    currentSelection[type] = e;
+  function updateFilter(e: TraitOption[], type: string) {
+    const currentSelection = { ...selection };
+    (currentSelection as any)[type] = e;
     setSelection(currentSelection);
 
-    var newOrder = [];
-    for (var i in data.order) {
-      var wizId = data.order[i];
-      var match = {
+    if (!data) return;
+
+    const newOrder: string[] = [];
+    for (const wizId of data.order) {
+      const match = {
         head: false,
         body: false,
         prop: false,
@@ -200,14 +210,15 @@ export default function Home() {
         background: false,
       };
 
-      for (type in currentSelection) {
-        if (currentSelection[type].length == 0) {
-          match[type] = true;
+      for (const traitType of traitList) {
+        const traitSelection = (currentSelection as any)[traitType] as TraitOption[];
+        if (traitSelection.length === 0) {
+          (match as any)[traitType] = true;
         } else {
-          for (i in currentSelection[type]) {
-            var x = currentSelection[type][i];
-            if (wizzies[wizId][type] == x.name) {
-              match[type] = true;
+          for (const x of traitSelection) {
+            if (wizzies[wizId] && (wizzies[wizId] as any)[traitType] === x.name) {
+              (match as any)[traitType] = true;
+              break;
             }
           }
         }
@@ -229,7 +240,7 @@ export default function Home() {
 
   return (
     <div>
-      {!data || !filteredData ? (
+      {dataLoading || !data || !filteredData ? (
         <div
           style={{
             display: "flex",
@@ -238,7 +249,7 @@ export default function Home() {
             height: "100vh",
           }}
         >
-          <img src="/tulip.gif" style={{ height: "10vh", width: "10vh" }} />
+          <img src="/tulip.gif" style={{ height: "10vh", width: "10vh" }} alt="Loading" />
         </div>
       ) : (
         <div className={styles.container}>
@@ -253,15 +264,16 @@ export default function Home() {
             }}
           >
             {data.burned} wizards burned | {1112 - data.burned} flames remain |{" "}
-            <Link passHref href="/burn-board">
+            <Link href="/burn-board">
               <span style={{ cursor: "pointer" }}>Burn Board</span>
             </Link>
             |{" "}
-            <Link href="/flame-shame" passHref>
+            <Link href="/flame-shame">
               <img
                 src="/Item-candle.png"
-                height="16"
+                height={16}
                 style={{ cursor: "pointer" }}
+                alt="Flame Shame"
               />
             </Link>
           </h3>
@@ -276,21 +288,25 @@ export default function Home() {
             }}
           >
             {traitList.map((trait, index) => {
+              const traitOptions = data.traits.filter(
+                (x: TraitStat) => x.type === trait && x.name
+              );
+              const selectedValues = (selection as any)[trait] as TraitOption[];
               return (
-                <StyledSelect
-                  key={index}
-                  placeholder={trait}
-                  options={data.traits.filter(
-                    (x) => x["type"] == trait && x["name"]
-                  )}
-                  onChange={(e) => updateFilter(e, trait)}
-                  multi={true}
-                  searchable={true}
-                  noDataLabel="No matches found"
-                  labelField="name"
-                  valueField="name"
-                  closeOnSelect={true}
-                />
+                <StyledSelectWrapper key={index}>
+                  <Select
+                    placeholder={trait}
+                    options={traitOptions}
+                    values={selectedValues}
+                    onChange={(e: TraitOption[]) => updateFilter(e, trait)}
+                    multi={true}
+                    searchable={true}
+                    noDataLabel="No matches found"
+                    labelField="name"
+                    valueField="name"
+                    closeOnSelect={true}
+                  />
+                </StyledSelectWrapper>
               );
             })}
           </div>
@@ -334,3 +350,4 @@ export default function Home() {
     </div>
   );
 }
+

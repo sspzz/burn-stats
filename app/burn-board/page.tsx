@@ -1,21 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
-import Head from "next/head";
-import styles from "../styles/Home.module.css";
-import LeaderboardRow from "../components/LeaderboardRow";
-import SiteHead from "../components/SiteHead";
-import { useInView } from "react-intersection-observer";
+"use client";
 
-function MainView({ data, filter }) {
+import React, { useEffect, useRef, useState } from "react";
+import styles from "../../styles/Home.module.css";
+import LeaderboardRow from "../../components/LeaderboardRow";
+import SiteHead from "../../components/SiteHead";
+import { useInView } from "react-intersection-observer";
+import { useLeaderboardData } from "../../hooks/useLeaderboardData";
+
+interface MainViewProps {
+  data: LeaderboardData;
+  filter: string;
+}
+
+function MainView({ data, filter }: MainViewProps) {
   const { ref, inView } = useInView();
   const [limit, setLimit] = useState(40);
 
   useEffect(() => {
-    if (inView && data.leaderboard && limit !== data.leaderboard.length) {
-      setLimit((limit) => {
-        return limit + 20;
-      });
+    if (data.leaderboard && limit !== data.leaderboard.length) {
+      if (inView) {
+        setLimit((prevLimit) => {
+          return prevLimit + 20;
+        });
+      }
     }
-  }, [inView, data.leaderboard]);
+  }, [inView, data.leaderboard, limit]);
 
   if (!data || !data.leaderboard) {
     return null;
@@ -52,46 +61,33 @@ function MainView({ data, filter }) {
         })}
       </div>
       {data.leaderboard.slice(0, limit).map((rowData, index) => (
-        <>
-          <LeaderboardRow key={index} data={rowData} rank={index + 1} />
-          {index === limit - 5 && <div key={index} ref={ref}></div>}
-        </>
+        <React.Fragment key={index}>
+          <LeaderboardRow data={rowData} rank={index + 1} />
+          {index === limit - 5 && <div ref={ref}></div>}
+        </React.Fragment>
       ))}
     </div>
   );
 }
 
-export default function Home() {
-  const [data, setData] = useState({});
+export default function BurnBoard() {
   const [filter, setFilter] = useState("flame");
-  const scrollContainerRef = useRef(null);
+  const { data, loading: dataLoading } = useLeaderboardData(filter);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (scrollContainerRef.current && scrollContainerRef.current.scrollTo) {
-          scrollContainerRef.current.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: "smooth",
-          });
-        }
-        setData({});
-        const ownersResponse = await fetch(
-          `/api/leaderboard-data?filter=${filter}`
-        );
-        const json = await ownersResponse.json();
-        setData(json);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchData();
+    if (scrollContainerRef.current && scrollContainerRef.current.scrollTo) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
   }, [filter]);
 
   return (
     <div>
-      {!data || !data.leaderboard ? (
+      {dataLoading || !data || !data.leaderboard ? (
         <div
           style={{
             display: "flex",
@@ -121,7 +117,7 @@ export default function Home() {
             <img
               onClick={() => setFilter("flame")}
               style={{ cursor: "pointer" }}
-              height="15"
+              height={15}
               src="/icon_Flames.png"
               alt="Flame"
             />
@@ -129,9 +125,9 @@ export default function Home() {
             <img
               onClick={() => setFilter("treatBox")}
               style={{ cursor: "pointer" }}
-              height="15"
+              height={15}
               src="/treat-box.png"
-              alt="Flame"
+              alt="Treat Box"
             />
           </div>
           <div
@@ -173,3 +169,4 @@ export default function Home() {
     </div>
   );
 }
+

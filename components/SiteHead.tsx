@@ -1,8 +1,12 @@
 import Head from "next/head";
 import React from "react";
 
-export default function SiteHead({name}) {
-  let image = "https://burnlog.vercel.app/new-tulip.png";
+interface SiteHeadProps {
+  name: string;
+}
+
+export default function SiteHead({ name }: SiteHeadProps) {
+  const image = "https://burnlog.vercel.app/new-tulip.png";
 
   return (
     <Head>
@@ -16,5 +20,6 @@ export default function SiteHead({name}) {
       <meta name="twitter:image" content={image} key="twimage"/>
       <meta property="og:image" content={image} key="ogimage"/>
     </Head>
-  )
+  );
 }
+

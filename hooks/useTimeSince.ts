@@ -4,7 +4,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-const useTimeSince = (timestamp) => {
+const useTimeSince = (timestamp: number): string => {
   const [timeSince, setTimeSince] = useState("");
 
   useEffect(() => {
@@ -19,3 +19,4 @@ const useTimeSince = (timestamp) => {
 };
 
 export default useTimeSince;
+

@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from "react";
-import styles from "../styles/Home.module.css";
-import OwnerRow from "../components/OwnerRow";
-import SiteHead from "../components/SiteHead";
+"use client";
 
-function MainView({ data }) {
+import React from "react";
+import styles from "../../styles/Home.module.css";
+import OwnerRow from "../../components/OwnerRow";
+import SiteHead from "../../components/SiteHead";
+import { useShameData } from "../../hooks/useShameData";
+
+interface MainViewProps {
+  data: ShameData;
+}
+
+function MainView({ data }: MainViewProps) {
   if (!data || !data.owners) {
     return null;
   }
@@ -24,25 +31,12 @@ function MainView({ data }) {
   );
 }
 
-export default function Home() {
-  const [data, setData] = useState({});
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const ownersResponse = await fetch("/api/shame-data");
-        const json = await ownersResponse.json();
-        setData(json);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchData();
-  }, []);
+export default function FlameShame() {
+  const { data, loading: dataLoading } = useShameData();
 
   return (
     <div>
-      {!data ? (
+      {dataLoading || !data ? (
         <div
           style={{
             display: "flex",
@@ -112,3 +106,4 @@ export default function Home() {
     </div>
   );
 }
+

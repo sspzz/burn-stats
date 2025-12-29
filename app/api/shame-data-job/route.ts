@@ -1,18 +1,42 @@
 import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { ShameData, OwnerData, TokenData } from "@/types";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_KEY;
-const RESERVOIR_KEY = process.env.NEXT_PUBLIC_RESERVOIR_API_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_KEY as string;
+const RESERVOIR_KEY = process.env.NEXT_PUBLIC_RESERVOIR_API_KEY as string;
 
-export default async function handler(req, res) {
+interface OwnerResponse {
+  address: string;
+  ownership: {
+    tokenCount: number;
+  };
+}
+
+interface OwnersResponse {
+  owners?: OwnerResponse[];
+}
+
+interface TokenResponse {
+  token: {
+    contract: string;
+    tokenId: string;
+    name: string;
+    image: string;
+  };
+}
+
+interface TokensResponse {
+  tokens?: TokenResponse[];
+}
+
+export async function GET() {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     const flameContract = "0x31158181b4b91a423bfdc758fc3bf8735711f9c5";
     const wizardContract = "0x521f9c7505005cfa19a8e5786a9c3c9c9f5e6f42";
-    const collectionSetId =
-      "b06af617550494133e4d774f150f3dd873c0fb95b5fa151180418edf405e6de4";
-    let flameOwners = {};
-    let ownerTokens = [];
+    let flameOwners: { [address: string]: number } = {};
+    const ownerTokens: OwnerData[] = [];
 
     //Read file from bucket
     const bucketReadResponse = await supabase.storage
@@ -21,18 +45,18 @@ export default async function handler(req, res) {
 
     if (!bucketReadResponse.error && bucketReadResponse.data.text) {
       const text = await bucketReadResponse.data.text();
-      const ownersJson = JSON.parse(text);
+      const ownersJson: ShameData = JSON.parse(text);
 
       //Check if data is fresh
       if (
         ownersJson &&
+        ownersJson.lastUpdated &&
         new Date().getTime() - ownersJson.lastUpdated < 20 * 60 * 1000
       ) {
         console.log("Data is still fresh");
-        res.status(200).json({
+        return NextResponse.json({
           message: "Data is still fresh",
         });
-        return;
       }
     }
 
@@ -46,13 +70,13 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await ownersResponse.json();
+    const data: OwnersResponse = await ownersResponse.json();
 
     if (data && data.owners) {
       flameOwners = data.owners.reduce((owners, owner) => {
         owners[owner.address] = owner.ownership.tokenCount;
         return owners;
-      }, {});
+      }, {} as { [address: string]: number });
     }
 
     const flameOwnerKeys = Object.keys(flameOwners);
@@ -71,31 +95,32 @@ export default async function handler(req, res) {
     const responses = await Promise.all(
       promises
         .filter((promise) => promise.status === "fulfilled" && promise.value)
-        .map((promise) => promise.value.json())
-    );
+        .map((promise) => (promise as PromiseFulfilledResult<Response>).value.json())
+    ) as TokensResponse[];
+    
     responses.forEach((tokensData, i) => {
       if (tokensData && tokensData.tokens && tokensData.tokens.length > 0) {
         const address = flameOwnerKeys[i];
-        const owner = {
+        const owner: OwnerData = {
           owner: address,
           tokens: [],
           flameCount: flameOwners[address],
         };
 
         tokensData.tokens.forEach((tokenData) => {
-          owner.tokens.push({
-            owner: flameOwners[i],
+          const token: TokenData = {
             contract: tokenData.token.contract,
             tokenId: tokenData.token.tokenId,
             name: tokenData.token.name,
             image: tokenData.token.image,
-          });
+          };
+          owner.tokens.push(token);
         });
         ownerTokens.push(owner);
       }
     });
 
-    const shameData = {
+    const shameData: ShameData = {
       owners: ownerTokens.sort((a, b) => b.flameCount - a.flameCount),
       lastUpdated: new Date().getTime(),
     };
@@ -106,16 +131,21 @@ export default async function handler(req, res) {
 
     if (uploadResponse.error) {
       console.log(`Data upload error: ${uploadResponse.error}`);
-      throw uploadResponse.error.message;
+      throw new Error(uploadResponse.error.message);
     } else {
       console.log("Uploaded data successfully");
-      res.status(200).json({
+      return NextResponse.json({
         message: "success",
       });
     }
   } catch (e) {
-    res.status(400).json({
-      error: e.message ? e.message : "Error",
-    });
+    const error = e as Error;
+    return NextResponse.json(
+      {
+        error: error.message ? error.message : "Error",
+      },
+      { status: 400 }
+    );
   }
 }
+
