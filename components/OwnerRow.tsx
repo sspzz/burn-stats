@@ -32,7 +32,7 @@ const OwnerRow = function ({ tokens }: OwnerRowProps) {
     >
       <h2>
         <a
-          href={`https://forgotten.market/address/${tokens.owner}`}
+          href={`https://opensea.io/${tokens.owner}`}
           target="_blank"
           rel="noreferrer"
         >
@@ -53,7 +53,7 @@ const OwnerRow = function ({ tokens }: OwnerRowProps) {
             <a
               key={index}
               href={
-                "https://forgotten.market/0x521f9c7505005cfa19a8e5786a9c3c9c9f5e6f42/" +
+                "https://opensea.io/item/ethereum/0x521f9c7505005cfa19a8e5786a9c3c9c9f5e6f42/item/" +
                 token.tokenId
               }
               target="_blank"

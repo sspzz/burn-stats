@@ -119,7 +119,7 @@ function MainView({ order, souls }: MainViewProps) {
             <div style={{ alignSelf: "self-start" }}>
               <a
                 href={
-                  "https://forgotten.market/0x521f9c7505005cfa19a8e5786a9c3c9c9f5e6f42/" +
+                  "https://opensea.io/item/ethereum/0x521f9c7505005cfa19a8e5786a9c3c9c9f5e6f42/" +
                   token
                 }
                 target="_blank"
@@ -149,7 +149,7 @@ function MainView({ order, souls }: MainViewProps) {
             <div>
               <a
                 href={
-                  "https://forgotten.market/0x251b5f14a825c537ff788604ea1b58e49b70726f/" +
+                  "https://opensea.io/item/ethereum/0x251b5f14a825c537ff788604ea1b58e49b70726f/" +
                   token
                 }
                 target="_blank"
